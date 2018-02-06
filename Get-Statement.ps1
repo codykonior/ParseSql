@@ -44,15 +44,36 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()
                 $StatementObject.OnObjectSchema = $Property.Options
                 $StatementObject.OnObjectName = switch ($Property.IsOn) { $true { "ON" } $false { "OFF" } }                  
-            } elseif ($ObjectType -eq "PredicateSetStatement") {
+            } elseif ($ObjectType -eq "GrantStatement") {
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
+                if ($Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers.Count -eq 1) {
+                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
+                } else {
+                    $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
+                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value                   
+                }
+            } elseif ($ObjectType -eq "GrantStatement") {
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
+                if ($Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers.Count -eq 1) {
+                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0]
+                } else {
+                    $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0]
+                    $
+                    StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1]                    
+                }
+            } else {
                 try {
                     $StatementObject.StatementType = $Statement.GetType().Name.ToString()
                     $SplitDefinition = (($Keys | Where-Object {$_.ObjectType -eq $Statement.gettype().name}).SchemaSpecification).Split(".")
                     ForEach ($def in $SplitDefinition) {
                         $Property = $Property | Select-Object -ExpandProperty $def
                     }
-                    $StatementObject.OnObjectSchema = $Property.SchemaIdentifier.Value
-                    $StatementObject.OnObjectName = $Property.BaseIdentifier.Value
+                    if ($Property.SchemaIdentifier -ne $null) {
+                        $StatementObject.OnObjectSchema = $Property.SchemaIdentifier.Value
+                    } 
+                    if ($Property.BaseIdentifier -ne $null) {
+                        $StatementObject.OnObjectName = $Property.BaseIdentifier.Value
+                    }
                 } catch {
                     Write-Warning "Parsed statement has no descernible statement type. Maybe define one as a parser key?"
                 }
