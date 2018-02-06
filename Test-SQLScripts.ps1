@@ -88,7 +88,7 @@ begin {
     $ParserKeys += New-Object Parserkey ("CreateTableStatement","SchemaObjectName")
     $ParserKeys += New-Object Parserkey ("DropProcedureStatement","Objects")
     $ParserKeys += New-Object Parserkey ("DropTableStatement","Objects")
-    
+    $ParserKeys += New-Object Parserkey ("ExecuteStatement","ExecuteSpecification.executableEntity.ProcedureReference.ProcedureReference.Name")
 
     function Get-UpdatedTableFromReferences($TableReference) {
         Write-Verbose "Looks like a joined DML statement, need to get into the references..."
