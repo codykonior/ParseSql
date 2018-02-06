@@ -17,7 +17,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
 
     if ($statementObject.Action -eq "If") {
         Write-Verbose "Found an an 'IF' statement, looking at the 'THEN' part of the statement..."
-        if ($Statement.ThenStatement.StatementList.Statements.Count -ge 1) {
+        if ($Statement.ThenStatement.psobject.Properties["StatementList"] -and $Statement.ThenStatement.StatementList.Statements.Count -ge 1) {
             $SubStatements = $Statement.ThenStatement.StatementList.Statements
             ForEach ($su in $subStatements) {
                 $StatementObject = Get-Statement $su $keys $ScriptName
@@ -57,7 +57,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 }
             } elseif ($ObjectType -eq "ExecuteStatement" -and $Statement.ExecuteSpecification.ExecutableEntity -is [Microsoft.SqlServer.TransactSql.ScriptDom.ExecutableStringList]) {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()                
-            } elseif ($ObjectType -in "DeclareVariableStatement", "PrintStatement") {
+            } elseif ($ObjectType -in "DeclareVariableStatement", "PrintStatement", "CreateLoginStatement") {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()                                
             } else {
                 try {
