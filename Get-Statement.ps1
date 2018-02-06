@@ -37,8 +37,8 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 $SchemaObject = Get-UpdatedTableFromReferences $Statement.UpdateSpecification.FromClause.TableReferences.FirstTableReference
                 $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
                 $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
-            } elseif ($ObjectType -eq "SelectStatement" -and $statement.QueryExpression.FromClause -and $statement.QueryExpression.FromClause.psobject.Properties["TableReferences"] -and $statement.QueryExpression.FromClause.TableReferences.FirstTableReference -ne $null) {
-                $SchemaObject = Get-UpdatedTableFromReferences $statement.Queryexpression.fromclause.tablereferences.FirstTableReference
+            } elseif ($ObjectType -eq "SelectStatement" -and $statement.QueryExpression.FromClause -and $statement.QueryExpression.FromClause.psobject.Properties["TableReferences"] -and $statement.QueryExpression.FromClause.TableReferences -and $statement.QueryExpression.FromClause.TableReferences.psobject.Properties["FirstTableReference"] -and $statement.QueryExpression.FromClause.TableReferences.FirstTableReference -ne $null) {
+                $SchemaObject = Get-UpdatedTableFromReferences $statement.Queryexpression.FromClause.TableReferences.FirstTableReference
                 $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
                 $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
             } elseif ($ObjectType -eq "SelectStatement") {
@@ -49,11 +49,13 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 $StatementObject.OnObjectName = switch ($Property.IsOn) { $true { "ON" } $false { "OFF" } }                  
             } elseif ($ObjectType -eq "GrantStatement") {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()
-                if ($Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers.Count -eq 1) {
-                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
-                } else {
-                    $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
-                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value                   
+                if ($Property.SecurityTargetObject) {
+                    if ($Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers.Count -eq 1) {
+                        $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
+                    } else {
+                        $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
+                        $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value                   
+                    }
                 }
             } elseif ($ObjectType -eq "ExecuteStatement" -and $Statement.ExecuteSpecification.ExecutableEntity -is [Microsoft.SqlServer.TransactSql.ScriptDom.ExecutableStringList]) {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()                
