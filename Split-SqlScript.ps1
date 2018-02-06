@@ -87,6 +87,7 @@ function Split-SqlScript {
         $ParserKeys += New-Object Parserkey ("ExecuteStatement", "ExecuteSpecification.ExecutableEntity.ProcedureReference.ProcedureReference.Name")
         $ParserKeys += New-Object Parserkey ("DeclareVariableStatement", $null)
         $ParserKeys += New-Object Parserkey ("PrintStatement", $null)
+        $ParserKeys += New-Object Parserkey ("CreateLoginStatement", $null)
 
         $LibraryLoaded = $false
         $ObjectCreated = $false
