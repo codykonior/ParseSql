@@ -23,7 +23,8 @@ Out-of-the-box this function will search for:
     - CREATE INDEX
     - CREATE PROCEDURE
     - DROP PROCEDURE
-
+    - EXEC
+    
 You can extend the tests by adding a new [ParserKey] object to the $ParserKeys array. For now, these defined tests live in the code
 but I expect them to be an external json file at some point.
 
