@@ -1,6 +1,6 @@
 function Get-UpdatedTableFromReferences($TableReference) {
     Write-Verbose "Looks like a joined DML statement, need to get into the references..."
-    if ($TableReference.FirstTableReference) {
+    if ($TableReference.psobject.Properties["FirstTableReference"] -and $TableReference.FirstTableReference) {
         Get-UpdatedTableFromReferences $TableReference.FirstTableReference
     } else {
         Write-Verbose "closing recursion..."

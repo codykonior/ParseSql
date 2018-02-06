@@ -34,10 +34,22 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
             $ObjectType = $TempObjectType.ObjectType
             Write-Verbose "Object type: $ObjectType"
             if ($ObjectType -eq "UpdateStatement" -and $statement.UpdateSpecification.WhereClause -ne $null -and $statement.UpdateSpecification.SetClauses -ne $null) {
-                $SchemaObject = Get-UpdatedTableFromReferences $Statement.UpdateSpecification.FromClause.TableReferences.FirstTableReference
-                $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
-                $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
-            } elseif ($ObjectType -eq "SelectStatement" -and $statement.QueryExpression.FromClause -and $statement.QueryExpression.FromClause.psobject.Properties["TableReferences"] -and $statement.QueryExpression.FromClause.TableReferences -and $statement.QueryExpression.FromClause.TableReferences.psobject.Properties["FirstTableReference"] -and $statement.QueryExpression.FromClause.TableReferences.FirstTableReference -ne $null) {
+                if ($Statement.UpdateSpecification.FromClause) {
+                    if ($Statement.UpdateSpecification.FromClause.TableReferences.psobject.Properties["FirstTableReference"]) {
+                        $SchemaObject = Get-UpdatedTableFromReferences $Statement.UpdateSpecification.FromClause.TableReferences.FirstTableReference
+                    } else {
+                        $SchemaObject = $Statement.UpdateSpecification.FromClause.TableReferences.SchemaObject
+                    }
+                } else {
+                    $SchemaObject = $Statement.UpdateSpecification.Target.SchemaObject
+                }
+                if ($SchemaObject.SchemaIdentifier -ne $null) {
+                    $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
+                } 
+                if ($SchemaObject.BaseIdentifier -ne $null) {
+                    $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
+                }
+        } elseif ($ObjectType -eq "SelectStatement" -and $statement.QueryExpression.FromClause -and $statement.QueryExpression.FromClause.psobject.Properties["TableReferences"] -and $statement.QueryExpression.FromClause.TableReferences -and $statement.QueryExpression.FromClause.TableReferences.psobject.Properties["FirstTableReference"] -and $statement.QueryExpression.FromClause.TableReferences.FirstTableReference -ne $null) {
                 $SchemaObject = Get-UpdatedTableFromReferences $statement.Queryexpression.FromClause.TableReferences.FirstTableReference
                 $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
                 $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
