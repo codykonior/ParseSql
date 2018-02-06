@@ -12,7 +12,7 @@
     RootModule        = 'ParseSql.psm1'
 
     # Version number of this module.
-    ModuleVersion     = '1.0.0.1'
+    ModuleVersion     = '1.0.0.2'
 
     # Supported PSEditions
     # CompatiblePSEditions = @()
@@ -30,7 +30,7 @@
     Copyright         = '(c) 2018 Drew Furgiuele, Cody Konior. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description = 'Simple SQL script parsing into batches and statements'
+    Description       = 'Simple SQL script parsing into batches and statements'
 
     # Minimum version of the Windows PowerShell engine required by this module
     # PowerShellVersion = ''
@@ -51,7 +51,7 @@
     # ProcessorArchitecture = ''
 
     # Modules that must be imported into the global environment prior to importing this module
-    RequiredModules = @('SqlServer')
+    RequiredModules   = @('SqlServer')
 
     # Assemblies that must be loaded prior to importing this module
     # RequiredAssemblies = @()
