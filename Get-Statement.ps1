@@ -20,12 +20,13 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
         if ($Statement.ThenStatement.StatementList.Statements.Count -ge 1) {
             $SubStatements = $Statement.ThenStatement.StatementList.Statements
             ForEach ($su in $subStatements) {
-                $StatementObject = Get-Statement $su $keys
+                $StatementObject = Get-Statement $su $keys $ScriptName
+                $StatementObject
             }
         } else {
-            $StatementObject = Get-Statement $Statement.ThenStatement $keys
+            $StatementObject = Get-Statement $Statement.ThenStatement $keys $ScriptName
+            $StatementObject
         }
-        $StatementObject.IsQualified = $true
     } else {
         $Property = $Statement
         $TempObjectType = ($Keys | Where-Object {$_.ObjectType -eq $Statement.gettype().name})
@@ -36,10 +37,12 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 $SchemaObject = Get-UpdatedTableFromReferences $Statement.UpdateSpecification.FromClause.TableReferences.FirstTableReference
                 $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
                 $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
-            } elseif ($ObjectType -eq "SelectStatement" -and $statement.Queryexpression.fromclause.tablereferences.FirstTableReference -ne $null) {
+            } elseif ($ObjectType -eq "SelectStatement" -and $statement.QueryExpression.FromClause -and $statement.QueryExpression.FromClause.psobject.Properties["TableReferences"] -and $statement.QueryExpression.FromClause.TableReferences.FirstTableReference -ne $null) {
                 $SchemaObject = Get-UpdatedTableFromReferences $statement.Queryexpression.fromclause.tablereferences.FirstTableReference
                 $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
                 $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
+            } elseif ($ObjectType -eq "SelectStatement") {
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
             } elseif ($ObjectType -eq "PredicateSetStatement") {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()
                 $StatementObject.OnObjectSchema = $Property.Options
@@ -52,15 +55,10 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                     $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
                     $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value                   
                 }
-            } elseif ($ObjectType -eq "GrantStatement") {
-                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
-                if ($Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers.Count -eq 1) {
-                    $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0]
-                } else {
-                    $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0]
-                    $
-                    StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1]                    
-                }
+            } elseif ($ObjectType -eq "ExecuteStatement" -and $Statement.ExecuteSpecification.ExecutableEntity -is [Microsoft.SqlServer.TransactSql.ScriptDom.ExecutableStringList]) {
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()                
+            } elseif ($ObjectType -in "DeclareVariableStatement", "PrintStatement") {
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()                                
             } else {
                 try {
                     $StatementObject.StatementType = $Statement.GetType().Name.ToString()
@@ -75,13 +73,15 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                         $StatementObject.OnObjectName = $Property.BaseIdentifier.Value
                     }
                 } catch {
-                    Write-Warning "Parsed statement has no descernible statement type. Maybe define one as a parser key?"
+                    Write-Warning "Parsed statement $($Statement.gettype().name) has no descernible statement type. Maybe define one as a parser key?"
                 }
             }
+
+            if ($StatementObject) {
+                return $StatementObject            
+            }                        
         } else {
             Write-Warning "$($Statement.gettype().name) is not a known type"
         }
     }
-    return $StatementObject            
-
 }

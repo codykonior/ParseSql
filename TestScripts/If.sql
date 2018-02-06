@@ -1,0 +1,8 @@
+IF NOT EXISTS (SELECT TOP 1 * FROM Something)
+BEGIN
+    DECLARE @Blah NVARCHAR(MAX)
+    SELECT @Blah = 'ABC'
+    EXEC (@Blah)
+    PRINT 'Ok!'
+END
+GO
