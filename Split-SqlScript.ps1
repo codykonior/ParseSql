@@ -45,12 +45,11 @@ Execute the parser against a list of files returned from the Get-ChildItem cmdle
 function Split-SqlScript {
     [cmdletbinding()]
     param(
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [Parameter(ParameterSetName="File", Mandatory)]
         [Alias("FullName")]
         [string] $File,
 
-        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [Parameter(ParameterSetName="Script", Mandatory)]
         [string] $Script,
 
@@ -140,7 +139,7 @@ function Split-SqlScript {
 
     process {
         if ($PSCmdlet.ParameterSetName -eq "File") {
-            $currentFileName = Resolve-Path $currentFileName
+            $currentFileName = Resolve-Path $File
             $scriptName = Split-Path -Leaf $currentFileName
             Write-Verbose "Parsing $currentFileName..."
             $Reader = New-Object System.IO.StreamReader($currentFileName)    
