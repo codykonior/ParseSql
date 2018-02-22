@@ -9,11 +9,13 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
         IsQualified     = $false
         OnObjectSchema  = $null
         OnObjectName    = $null
+        Text            = $null
     }
                 
     Add-Member -InputObject $StatementObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
                 
-    $StatementObject.Action = ($Statement.ScriptTokenStream | Where-Object {$_.Line -eq $Statement.StartLine -and $_.Column -eq $Statement.StartColumn}).Text.ToUpper()
+    $StatementObject.Action = $Statement.ScriptTokenStream[$Statement.FirstTokenIndex].Text.ToUpper()
+    $StatementObject.Text = $Statement.ScriptTokenStream[$Statement.FirstTokenIndex..$Statement.LastTokenIndex].Text -join ""
 
     if ($statementObject.Action -eq "If") {
         Write-Verbose "Found an an 'IF' statement, looking at the 'THEN' part of the statement..."
