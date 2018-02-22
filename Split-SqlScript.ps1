@@ -7,9 +7,12 @@ This function utilizes the SQL Server ScriptDom Parser object to parse and retur
 of T-SQL commands they contain. It will return an object that contains high-level information, as well as a batches object which in turn contains 
 statement objects.
 
-.PARAMETER Files
+.PARAMETER File
 The [System.IO.FileInfo] object containing the files you want to scan. This type of object is usually returned from a Get-ChildItem cmdlet, so you can pipe the
-results of it to this function. Required.
+results of it to this function. Otherwise you can just use full file names. Required.
+
+.PARAMETER Script
+A string that contains a script to parse.
 
 .PARAMETER UseQuotedIdentifier
 Whether or not the quoted identifier option is turned on for the parser. Defaults to true and is passed to the object instantiation.
@@ -42,15 +45,16 @@ Execute the parser against a list of files returned from the Get-ChildItem cmdle
 function Split-SqlScript {
     [cmdletbinding()]
     param(
-        [Parameter(
-            Mandatory = $true,
-            Position = 0,
-            ValueFromPipeline = $true,
-            ValueFromPipelineByPropertyName = $true)
-        ] 
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(ParameterSetName="File", Mandatory)]
         [Alias("FullName")]
         [string] $File,
-        [Parameter(Mandatory = $false)] [string] $UseQuotedIdentifier = $true
+
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Parameter(ParameterSetName="Script", Mandatory)]
+        [string] $Script,
+
+        [string] $UseQuotedIdentifier = $true
     )
 
     begin {
@@ -135,59 +139,63 @@ function Split-SqlScript {
 
 
     process {
-        ForEach ($currentFileName in $File) {
+        if ($PSCmdlet.ParameterSetName -eq "File") {
             $currentFileName = Resolve-Path $currentFileName
             $scriptName = Split-Path -Leaf $currentFileName
             Write-Verbose "Parsing $currentFileName..."
-
             $Reader = New-Object System.IO.StreamReader($currentFileName)    
-            $Errors = $null
-            $Fragment = $Parser.Parse($Reader, [ref] $Errors)
-
-            [bool] $HasErrors = $false
-            if ($Errors -ne $null) {
-                [bool] $HasErrors = $true
-            }
-
-            $ScriptObject = [PSCustomObject] @{
-                PSTypeName      = "Parser.DOM.Script"
-                ScriptName      = $scriptName
-                ScriptFilePath  = $currentFileName
-                NumberOfBatches = $Fragment.Batches.Count
-                HasParseErrors  = $HasErrors
-                Errors          = $Errors
-                Batches         = @()
-            }
-
-            Add-Member -InputObject $ScriptObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
-                
-            $TotalBatches = 0
-            ForEach ($b in $Fragment.Batches) {
-                $TotalBatches++;
-
-                $BatchObject = [pscustomobject] @{
-                    PSTypeName  = "Parser.DOM.Batch"
-                    ScriptName  = $scriptName
-                    BatchNumber = $TotalBatches
-                    Statements  = @()
-                }
-
-                Add-Member -InputObject $BatchObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
-
-                $TotalStatements = 0
-                ForEach ($s in $b.Statements) {
-                    $TotalStatements++
-                    $StatementObject = Get-Statement $s $ParserKeys $scriptName
-
-                    $BatchObject.Statements += $StatementObject
-                }
-                $ScriptObject.Batches += $BatchObject
-            }
-
-            $Reader.Close()
-
-            $ScriptObject
+        } else {
+            $currentFileName = $null
+            $scriptName = $null
+            $Reader = New-Object System.IO.StringReader($Script)    
         }
+
+        $Errors = $null
+        $Fragment = $Parser.Parse($Reader, [ref] $Errors)
+
+        [bool] $HasErrors = $false
+        if ($Errors -ne $null) {
+            [bool] $HasErrors = $true
+        }
+
+        $ScriptObject = [PSCustomObject] @{
+            PSTypeName      = "Parser.DOM.Script"
+            ScriptName      = $scriptName
+            ScriptFilePath  = $currentFileName
+            NumberOfBatches = $Fragment.Batches.Count
+            HasParseErrors  = $HasErrors
+            Errors          = $Errors
+            Batches         = @()
+        }
+
+        Add-Member -InputObject $ScriptObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
+            
+        $TotalBatches = 0
+        ForEach ($b in $Fragment.Batches) {
+            $TotalBatches++;
+
+            $BatchObject = [pscustomobject] @{
+                PSTypeName  = "Parser.DOM.Batch"
+                ScriptName  = $scriptName
+                BatchNumber = $TotalBatches
+                Statements  = @()
+            }
+
+            Add-Member -InputObject $BatchObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
+
+            $TotalStatements = 0
+            ForEach ($s in $b.Statements) {
+                $TotalStatements++
+                $StatementObject = Get-Statement $s $ParserKeys $scriptName
+
+                $BatchObject.Statements += $StatementObject
+            }
+            $ScriptObject.Batches += $BatchObject
+        }
+
+        $Reader.Close()
+
+        $ScriptObject
     }
 
     end {
