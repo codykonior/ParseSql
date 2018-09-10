@@ -1,13 +1,13 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"editor.formatOnPaste": false,
-		"editor.formatOnSave": false,
-		"editor.formatOnType": false,
-		"powershell.codeFormatting.preset": "OTBS"
-	}
+  "folders": [
+       {
+          "path": "."
+        }
+  ],
+     "settings": {
+      "editor.formatOnPaste": false,
+         "editor.formatOnSave": false,
+      "editor.formatOnType": false,
+      "powershell.codeFormatting.preset": "OTBS"
+     }
 }
