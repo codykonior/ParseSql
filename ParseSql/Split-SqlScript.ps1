@@ -1,10 +1,10 @@
 <#
 .SYNOPSIS
 Scans a (list of) T-SQL script files(s) and returns information about the operations being performed by them.
-    
+
 .DESCRIPTION
 This function utilizes the SQL Server ScriptDom Parser object to parse and return information about each batch and statements within each batch
-of T-SQL commands they contain. It will return an object that contains high-level information, as well as a batches object which in turn contains 
+of T-SQL commands they contain. It will return an object that contains high-level information, as well as a batches object which in turn contains
 statement objects.
 
 .PARAMETER File
@@ -27,13 +27,13 @@ Out-of-the-box this function will search for:
     - CREATE PROCEDURE
     - DROP PROCEDURE
     - EXEC
-    
+
 You can extend the tests by adding a new [ParserKey] object to the $ParserKeys array. For now, these defined tests live in the code
 but I expect them to be an external json file at some point.
 
 Author: Drew Furgiuele (@pittfurg, port1433.com)
 Tags: T-SQL, Parser
-    
+
 .LINK
 
 .EXAMPLE
@@ -109,7 +109,7 @@ function Split-SqlScript {
                     try {
                         Add-Type -AssemblyName "Microsoft.SqlServer.TransactSql.ScriptDom,Version=$v.0.0.0,Culture=neutral,PublicKeyToken=89845dcd8080cc91"  -ErrorAction SilentlyContinue
                         Write-Verbose "Loaded version $v.0.0.0 of the ScriptDom library."
-                        $LibraryLoaded = $true                
+                        $LibraryLoaded = $true
                     } catch {
                         Write-Verbose "Couldn't load version $v.0.0.0 of the ScriptDom library."
                     }
@@ -142,11 +142,11 @@ function Split-SqlScript {
             $currentFileName = Resolve-Path $File
             $scriptName = Split-Path -Leaf $currentFileName
             Write-Verbose "Parsing $currentFileName..."
-            $Reader = New-Object System.IO.StreamReader($currentFileName)    
+            $Reader = New-Object System.IO.StreamReader($currentFileName)
         } else {
             $currentFileName = $null
             $scriptName = $null
-            $Reader = New-Object System.IO.StringReader($Script)    
+            $Reader = New-Object System.IO.StringReader($Script)
         }
 
         $Errors = $null
@@ -168,7 +168,7 @@ function Split-SqlScript {
         }
 
         Add-Member -InputObject $ScriptObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
-            
+
         $TotalBatches = 0
         ForEach ($b in $Fragment.Batches) {
             $TotalBatches++;

@@ -11,9 +11,9 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
         OnObjectName    = $null
         Text            = $null
     }
-                
+
     Add-Member -InputObject $StatementObject -Type ScriptMethod -Name ToString -Value { $this.psobject.typenames[0] } -Force
-                
+
     $StatementObject.Action = $Statement.ScriptTokenStream[$Statement.FirstTokenIndex].Text.ToUpper()
     $StatementObject.Text = $Statement.ScriptTokenStream[$Statement.FirstTokenIndex..$Statement.LastTokenIndex].Text -join ""
 
@@ -32,7 +32,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
     } else {
         $Property = $Statement
         $TempObjectType = ($Keys | Where-Object {$_.ObjectType -eq $Statement.gettype().name})
-        if ($TempObjectType) {            
+        if ($TempObjectType) {
             $ObjectType = $TempObjectType.ObjectType
             Write-Verbose "Object type: $ObjectType"
             if ($ObjectType -eq "UpdateStatement" -and $statement.UpdateSpecification.WhereClause -ne $null -and $statement.UpdateSpecification.SetClauses -ne $null) {
@@ -47,7 +47,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                 }
                 if ($SchemaObject.SchemaIdentifier -ne $null) {
                     $StatementObject.OnObjectSchema = $SchemaObject.SchemaIdentifier.Value
-                } 
+                }
                 if ($SchemaObject.BaseIdentifier -ne $null) {
                     $StatementObject.OnObjectName = $SchemaObject.BaseIdentifier.Value
                 }
@@ -60,7 +60,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
             } elseif ($ObjectType -eq "PredicateSetStatement") {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()
                 $StatementObject.OnObjectSchema = $Property.Options
-                $StatementObject.OnObjectName = switch ($Property.IsOn) { $true { "ON" } $false { "OFF" } }                  
+                $StatementObject.OnObjectName = switch ($Property.IsOn) { $true { "ON" } $false { "OFF" } }
             } elseif ($ObjectType -eq "GrantStatement") {
                 $StatementObject.StatementType = $Statement.GetType().Name.ToString()
                 if ($Property.SecurityTargetObject) {
@@ -68,13 +68,13 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                         $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
                     } else {
                         $StatementObject.OnObjectSchema = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[0].Value
-                        $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value                   
+                        $StatementObject.OnObjectName = $Property.SecurityTargetObject.ObjectName.MultiPartIdentifier.Identifiers[1].Value
                     }
                 }
             } elseif ($ObjectType -eq "ExecuteStatement" -and $Statement.ExecuteSpecification.ExecutableEntity -is [Microsoft.SqlServer.TransactSql.ScriptDom.ExecutableStringList]) {
-                $StatementObject.StatementType = $Statement.GetType().Name.ToString()                
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
             } elseif ($ObjectType -in "DeclareVariableStatement", "PrintStatement", "CreateLoginStatement") {
-                $StatementObject.StatementType = $Statement.GetType().Name.ToString()                                
+                $StatementObject.StatementType = $Statement.GetType().Name.ToString()
             } else {
                 try {
                     $StatementObject.StatementType = $Statement.GetType().Name.ToString()
@@ -84,7 +84,7 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
                     }
                     if ($Property.SchemaIdentifier -ne $null) {
                         $StatementObject.OnObjectSchema = $Property.SchemaIdentifier.Value
-                    } 
+                    }
                     if ($Property.BaseIdentifier -ne $null) {
                         $StatementObject.OnObjectName = $Property.BaseIdentifier.Value
                     }
@@ -94,8 +94,8 @@ function Get-Statement ($Statement, $Keys, $ScriptName) {
             }
 
             if ($StatementObject) {
-                return $StatementObject            
-            }                        
+                return $StatementObject
+            }
         } else {
             Write-Warning "$($Statement.gettype().name) is not a known type"
         }

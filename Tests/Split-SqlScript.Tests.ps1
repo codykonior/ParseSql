@@ -1,4 +1,4 @@
-foreach ($file in (Get-ChildItem .\TestScripts\*.sql)) {
+foreach ($file in (Get-ChildItem .\Tests\TestScripts\*.sql)) {
     Describe $file {
         It "does not throw an error" {
             { Split-SqlScript -File $file } | Should -Not -Throw
