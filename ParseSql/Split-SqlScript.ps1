@@ -44,7 +44,7 @@ Execute the parser against a list of files returned from the Get-ChildItem cmdle
 #>
 function Split-SqlScript {
     [cmdletbinding()]
-    param(
+    param (
         [Parameter(ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [Parameter(ParameterSetName="File", Mandatory)]
         [Alias("FullName")]
