@@ -153,7 +153,7 @@ function Split-SqlScript {
         $Fragment = $Parser.Parse($Reader, [ref] $Errors)
 
         [bool] $HasErrors = $false
-        if ($Errors -ne $null) {
+        if ($null -ne $Errors) {
             [bool] $HasErrors = $true
         }
 
